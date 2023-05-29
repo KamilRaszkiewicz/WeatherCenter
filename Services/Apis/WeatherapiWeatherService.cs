@@ -5,7 +5,7 @@ using WeatherCenter.Dto.Weather;
 using WeatherCenter.Dto.Weather.Weatherapi;
 using WeatherCenter.Interfaces;
 
-namespace WeatherCenter.Services
+namespace WeatherCenter.Services.Apis
 {
     public class WeatherapiWeatherService : IWeatherService
     {
@@ -33,8 +33,8 @@ namespace WeatherCenter.Services
 
             if (!result.IsSuccessStatusCode)
             {
-                return new WeatherInfoDto() 
-                { 
+                return new WeatherInfoDto()
+                {
                     IsSuccess = false
                 };
             }
@@ -60,7 +60,7 @@ namespace WeatherCenter.Services
                 Humidity = deserializedResult.current.humidity,
                 CloudPercentage = deserializedResult.current.cloud,
 
-                LocalTime = deserializedResult.location.localtime_epoch,
+                LocalTime = deserializedResult.location.localtime,
 
                 SummaryIconUrl = deserializedResult.current.condition.icon
             };

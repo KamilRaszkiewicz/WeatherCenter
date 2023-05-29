@@ -1,7 +1,8 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WeatherCenter.Interfaces;
 using WeatherCenter.Models;
-using WeatherCenter.Services;
+using WeatherCenter.Services.Apis;
 
 namespace WeatherCenter
 {
@@ -23,7 +24,13 @@ namespace WeatherCenter
                 opts.BaseAddress = new Uri("https://api.weatherapi.com");
             });
 
-            builder.Services.AddSingleton<IAutocompleteService, WeatherapiAutocompleteService>();
+            builder.Services.AddHttpClient("maps.googleapis.com", opts =>
+                {
+                    opts.BaseAddress = new Uri("https://maps.googleapis.com");
+            });
+        
+
+            builder.Services.AddSingleton<IAutocompleteService, GooglePlacesAutocompleteService>();
             builder.Services.AddSingleton<IWeatherService, WeatherapiWeatherService>();
 
             var app = builder.Build();
@@ -39,7 +46,8 @@ namespace WeatherCenter
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-            app.MapGet("/autocomplete/{query}", async (IAutocompleteService svc, string query) => await svc.GetAutocompletes(query));
+            app.MapGet("/autocomplete", async (IAutocompleteService svc, [FromQuery(Name = "q")] string query) => await svc.GetAutocompletes(query));
+            app.MapGet("/coordinates", async (IAutocompleteService svc, [FromQuery(Name = "q")] string placeId) => await svc.GetCoordinates(placeId));
             app.MapGet("/weather/{latitude},{longtitude}", async (IWeatherService svc, double latitude, double longtitude) => await svc.GetCurrentWeather(latitude, longtitude));
 
             app.UseRouting();

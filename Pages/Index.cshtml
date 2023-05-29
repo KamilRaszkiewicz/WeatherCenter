@@ -3,8 +3,37 @@
 @{
     ViewData["Title"] = "Home page";
 }
-
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+	<div class="k-d-flex k-justify-content-center" style="padding-top: 54px;">
+		<div class="k-w-300">
+            <label for="autoComplete">Choose shipping countries:</label>
+            <input id="autoComplete" />
+			<div class="demo-hint">Start typing the name of an European country</div>
+		</div>
+	</div>
+
+    <script>
+        $(document).ready(function () {
+            $("#autoComplete").kendoAutoComplete({
+                minLength: 2,
+                dataTextField: "title",
+                filter: "contains",
+                dataSource: new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: "/autocomplete",
+                            data: {
+                                q: function () {
+                                    return $("#autoComplete").data("kendoAutoComplete").value();
+                                }
+                            }
+                        }
+                    },
+                }),
+                change: function () {
+                    this.dataSource.read();
+                }
+            })
+        });
+    </script>
 </div>

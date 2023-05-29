@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using WeatherCenter.Interfaces;
 using WeatherCenter.Models;
+using WeatherCenter.Services;
 
 namespace WeatherCenter
 {
@@ -16,7 +18,13 @@ namespace WeatherCenter
                 opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
                 );
 
+            builder.Services.AddHttpClient("weatherapi.com", opts =>
+            {
+                opts.BaseAddress = new Uri("https://api.weatherapi.com");
+            });
 
+            builder.Services.AddSingleton<IAutocompleteService, WeatherapiAutocompleteService>();
+            builder.Services.AddSingleton<IWeatherService, WeatherapiWeatherService>();
 
             var app = builder.Build();
 
@@ -30,6 +38,9 @@ namespace WeatherCenter
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.MapGet("/autocomplete/{query}", async (IAutocompleteService svc, string query) => await svc.GetAutocompletes(query));
+            app.MapGet("/weather/{latitude},{longtitude}", async (IWeatherService svc, double latitude, double longtitude) => await svc.GetCurrentWeather(latitude, longtitude));
 
             app.UseRouting();
 

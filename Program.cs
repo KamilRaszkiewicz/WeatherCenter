@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using WeatherCenter.Models;
+
 namespace WeatherCenter
 {
     public class Program
@@ -6,8 +9,14 @@ namespace WeatherCenter
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            builder.Configuration.AddJsonFile("secrets.json");
+
             builder.Services.AddRazorPages();
+            builder.Services.AddDbContext<ApplicationDbContext>(opts =>
+                opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+                );
+
+
 
             var app = builder.Build();
 

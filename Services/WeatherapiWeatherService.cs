@@ -60,7 +60,7 @@ namespace WeatherCenter.Services
                 Humidity = deserializedResult.current.humidity,
                 CloudPercentage = deserializedResult.current.cloud,
 
-                LocalTime = deserializedResult.location.localtime,
+                LocalTime = deserializedResult.location.localtime_epoch,
 
                 SummaryIconUrl = deserializedResult.current.condition.icon
             };

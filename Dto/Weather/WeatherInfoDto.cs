@@ -11,6 +11,7 @@
         public int Humidity { get; set; }
         public int CloudPercentage { get; set; }
 
+        //TODO: CHANGE LOCAL TIME PROVIDER
         public string LocalTime { get; set; }
 
         public string SummaryIconUrl { get; set; }

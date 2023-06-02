@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WeatherCenter.Interfaces;
 using WeatherCenter.Models;
+using WeatherCenter.Services;
 using WeatherCenter.Services.Apis;
 
 namespace WeatherCenter
@@ -14,7 +15,6 @@ namespace WeatherCenter
 
             builder.Configuration.AddJsonFile("secrets.json");
 
-            builder.Services.AddRazorPages();
             builder.Services.AddDbContext<ApplicationDbContext>(opts =>
                 opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
                 );
@@ -28,10 +28,14 @@ namespace WeatherCenter
                 {
                     opts.BaseAddress = new Uri("https://maps.googleapis.com");
             });
-        
 
-            builder.Services.AddSingleton<IAutocompleteService, GooglePlacesAutocompleteService>();
+            builder.Services.AddControllersWithViews();
+
+            builder.Services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
+
+            builder.Services.AddSingleton<ILocationsService, GooglePlacesService>();
             builder.Services.AddSingleton<IWeatherService, WeatherapiWeatherService>();
+            builder.Services.AddScoped<IWidgetService, WidgetService>();
 
             var app = builder.Build();
 
@@ -45,16 +49,11 @@ namespace WeatherCenter
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
-            app.MapGet("/autocomplete", async (IAutocompleteService svc, [FromQuery(Name = "q")] string query) => await svc.GetAutocompletes(query));
-            app.MapGet("/coordinates", async (IAutocompleteService svc, [FromQuery(Name = "q")] string placeId) => await svc.GetCoordinates(placeId));
-            app.MapGet("/weather/{latitude},{longtitude}", async (IWeatherService svc, double latitude, double longtitude) => await svc.GetCurrentWeather(latitude, longtitude));
+            app.MapControllers();
 
             app.UseRouting();
 
             app.UseAuthorization();
-
-            app.MapRazorPages();
 
             app.Run();
         }

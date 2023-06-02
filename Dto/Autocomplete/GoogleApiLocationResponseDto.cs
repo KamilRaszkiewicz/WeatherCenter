@@ -10,6 +10,7 @@
 
     public class Result
     {
+        public int utc_offset { get; set; }
         public Geometry geometry { get; set; }
     }
 

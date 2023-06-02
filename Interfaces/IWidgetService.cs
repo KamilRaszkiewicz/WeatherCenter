@@ -4,9 +4,14 @@ namespace WeatherCenter.Interfaces
 {
     public interface IWidgetService
     {
-        IEnumerable<GetWeatherWidgetDto> GetWeatherWidgets();
+        IEnumerable<GetWeatherWidgetResponseDto> GetWeatherWidgets();
 
-        Task<bool> CreateWeatherWidget(CreateWeatherWidgetDto dto);
+        Task<GetWeatherWidgetResponseDto> CreateWeatherWidget(CreateWeatherWidgetDto dto);
+
+        bool UpdateWeatherWidget(int widgetId, string newName);
+
+        GetCoordinatesResult GetCoordinates(int widgetId);
+
         bool DeleteWeatherWidget(int widgetId);
     }
 }

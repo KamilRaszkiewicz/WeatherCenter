@@ -1,0 +1,199 @@
+﻿@{
+    Layout = "_Layout";
+}
+@using WeatherCenter.Dto.Widget;
+@model IEnumerable<GetWeatherWidgetResponseDto>
+
+<div class="text-center">
+    <div class="col-md-10 offset-md-1" style="padding-top: 54px;">
+        <div class="row">
+            <form method="post" id="widgetForm">
+                <input type="hidden" name="placeId" value="">
+                <input type="hidden" name="city" value="">
+                <input type="hidden" name="secondPart" value="">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6 offset-md-3">
+                            <h2><label for="autoComplete">Check weather in Your city!</label></h2>
+                            <input id="autoComplete" placeholder="City"/>
+                        </div>
+                    </div>
+                    <div class="row pt-2">
+                        <div class="col-md-3 offset-md-3">
+                            <span class="k-input k-input-solid k-input-md k-rounded-md">
+                                <input id="widgetName" type="text" class="k-input" name="widgetName" placeholder="Widget name">
+                            </span>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" id="submitWidget" class="btn-sm btn-primary btn-block" disabled>Create widget</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="row" style="padding-top: 54px;" >
+            <div class="d-flex flex-wrap justify-content-around" id="widgetsContainer">
+            @foreach(var widget in Model)
+            {
+                <div class="col-5 p-1 my-3 widget border rounded bg-light" data-widgetId="@widget.WidgetId">
+                    <div class="container">
+                        <div class="row text-center pb-1">
+                            <div class="col-8">
+                                <h6 data-name="widgetName">@widget.WidgetName</h6>
+                            </div>
+                            <div class="col-4">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <img src="icons/edit-fill-1480-svgrepo-com.svg" class="actionIcon hoverInvertColor" data-name="editWidget" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    </div>
+                                    <div class="col-6">
+                                        <img src="icons/delete-1487-svgrepo-com.svg" class="actionIcon hoverInvertColor" data-name="deleteWidget">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            <div class="row text-center px-4 pb-2">
+                                <div class="col-12 text-center">
+                                    <span>Location: </span><span data-name="fullLocation">@widget.FullLocation</span>
+                                </div>
+                            </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="row py-1">
+                                    <div class="col-4">
+                                        <img src="icons/alarm-clock-svgrepo-com.svg" class="widgetIcon">
+                                    </div>
+                                     <div class="col-8 text-start" data-name="localTime">
+                                        @widget.LocalTime
+                                      </div>
+                                </div>
+                                <div class="row py-1">
+                                    <div class="col-4">
+                                         <img src="icons/temperature-three-quarters-svgrepo-com.svg" class="widgetIcon">
+                                    </div>
+                                    <div class="col-8 text-start">
+                                            <span data-name="temperature"></span><span>&deg;C</span>
+                                    </div>
+                                </div>
+                                <div class="row py-1">
+                                    <div class="col-4">
+                                            <img src="icons/wind-svgrepo-com.svg" class="widgetIcon">
+                                    </div>
+                                    <div class="col-8 text-start">
+                                            <span data-name="windSpeed"></span><span> km/h</span>
+                                    </div>
+                                </div>
+                            </div>
+                             <div class="col-6">
+                                <div class="row d-flex justify-content-center">
+                                    <img src="" class="weatherSummaryIcon" data-name="summaryIcon"/>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 text-start">
+                                        <span>Cloudiness </span><span data-name="cloudPercentage"></span><span>%</span>
+                                    </div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            }
+  
+            </div>
+		</div>
+	</div>
+</div>
+
+<form name="deleteForm" style="display: none;">
+    <input id="deleteInput" type="hidden" name="widgetId">
+</form>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit your widget!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div name="editForm">
+            <input id="editInput" type="hidden" name="widget_id">
+            <label for="widgetame">Widget name</label>
+            <span class="k-input k-input-solid k-input-md k-rounded-md">
+                <input type="text" value="" class="k-input" name="newName" placeholder="Widget name">
+            </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button id="saveButton", type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="widgetTemplateContainer"style="display:none;">
+    <div class="col-5 p-1 my-3 widget border rounded bg-light" data-widgetId="">
+        <div class="container">
+            <div class="row text-center pb-1">
+                <div class="col-8">
+                    <h6 data-name="widgetName"></h6>
+                </div>
+                <div class="col-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <img src="icons/edit-fill-1480-svgrepo-com.svg" class="actionIcon hoverInvertColor" data-name="editWidget" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        </div>
+                        <div class="col-6">
+                            <img src="icons/delete-1487-svgrepo-com.svg" class="actionIcon hoverInvertColor" data-name="deleteWidget">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row text-center px-4 pb-2">
+                <div class="col-12 text-center">
+                    <span>Location: </span><span data-name="fullLocation"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <div class="row py-1">
+                        <div class="col-4">
+                            <img src="icons/alarm-clock-svgrepo-com.svg" class="widgetIcon">
+                        </div>
+                        <div class="col-8 text-start" data-name="localTime">
+                        </div>
+                    </div>
+                    <div class="row py-1">
+                        <div class="col-4">
+                            <img src="icons/temperature-three-quarters-svgrepo-com.svg" class="widgetIcon">
+                        </div>
+                        <div class="col-8 text-start">
+                            <span data-name="temperature"></span><span>&deg;C</span>
+                        </div>
+                    </div>
+                    <div class="row py-1">
+                        <div class="col-4">
+                            <img src="icons/wind-svgrepo-com.svg" class="widgetIcon">
+                        </div>
+                        <div class="col-8 text-start">
+                            <span data-name="windSpeed"></span><span> km/h</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="row d-flex justify-content-center">
+                        <img src="" class="weatherSummaryIcon" data-name="summaryIcon" />
+                    </div>
+                    <div class="row">
+                        <div class="col-12 text-start">
+                            <span>Cloudiness </span><span data-name="cloudPercentage"></span><span>%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="module" src="js/pageModule.js">
+</script>

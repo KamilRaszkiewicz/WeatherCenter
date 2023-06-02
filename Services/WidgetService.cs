@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using WeatherCenter.Dto.Autocomplete;
 using WeatherCenter.Dto.Widget;
 using WeatherCenter.Interfaces;
 using WeatherCenter.Models.Entities;
@@ -8,17 +10,17 @@ namespace WeatherCenter.Services
     public class WidgetService : IWidgetService
     {
         private readonly IRepository<Widget> _widgetsRepository;
-        private readonly IAutocompleteService _autocompleteService;
+        private readonly ILocationsService _autocompleteService;
 
-        public WidgetService(IRepository<Widget> widgetsRepository, IAutocompleteService autocompleteService)
+        public WidgetService(IRepository<Widget> widgetsRepository, ILocationsService autocompleteService)
         {
             _widgetsRepository = widgetsRepository;
             _autocompleteService = autocompleteService;
         }
 
-        public async Task<bool> CreateWeatherWidget(CreateWeatherWidgetDto dto)
+        public async Task<GetWeatherWidgetResponseDto> CreateWeatherWidget(CreateWeatherWidgetDto dto)
         {
-            var coords = await _autocompleteService.GetCoordinates(dto.PlaceId);
+            var location = await _autocompleteService.GetCoordinates(dto.PlaceId);
 
             var secondaryInfo = dto.SecondPart.Split(", ");
 
@@ -26,53 +28,93 @@ namespace WeatherCenter.Services
             var region = secondaryInfo.SkipLast(1).FirstOrDefault();
 
 
-
             var entity = new Widget()
             {
                 Name = dto.WidgetName,
+
                 City = dto.City,
                 Region = region,
                 Country = country,
+                FullLocation = dto.City + ", " + dto.SecondPart,
 
-                Latitude = coords.lat,
-                Longtitude = coords.lng
+                UtcOffset = location.UtcOffset,
+                Latitude = location.Latitude,
+                Longtitude = location.Longtitude,
+
+                CreatedAt = DateTime.UtcNow
             };
 
             _widgetsRepository.Add(entity);
+            _widgetsRepository.SaveChanges();
 
-            return _widgetsRepository.SaveChanges() == 1;
+            return new GetWeatherWidgetResponseDto()
+            {
+                WidgetId = entity.Id,
+                WidgetName = entity.Name,
+                FullLocation = entity.FullLocation,
+
+                LocalTime = DateTime.UtcNow.AddMinutes(entity.UtcOffset).ToString("HH:mm")
+            };
         }
 
         public bool DeleteWeatherWidget(int widgetId)
         {
-            _widgetsRepository.Remove(new Widget() { Id = widgetId });
+            var entity = _widgetsRepository.Get(x => x.Id == widgetId).FirstOrDefault();
+
+            if (entity == null) return false;
+
+            _widgetsRepository.Remove(entity);
 
             return _widgetsRepository.SaveChanges() == 1;
         }
 
-        public IEnumerable<GetWeatherWidgetDto> GetWeatherWidgets()
+        public GetCoordinatesResult GetCoordinates(int widgetId)
         {
-            return _widgetsRepository.GetAll().Select(x => new GetWeatherWidgetDto()
+            var widget = _widgetsRepository.Get(x => x.Id == widgetId).FirstOrDefault();
+
+            if(widget == null)
             {
-                WidgetId = x.Id,
-                WidgetName = x.Name,
+                return new GetCoordinatesResult() { Exists = false };
+            }
 
-                Latitude = x.Latitude,
-                Longtitude = x.Longtitude,
+            return new GetCoordinatesResult()
+            {
+                Exists = true,
+                Location = new Location()
+                {
+                    lat = widget.Latitude,
+                    lng = widget.Longtitude
+                }
+            };
+        }
 
-                FullLocation = GetFullLocation(x),
-            });
+        public IEnumerable<GetWeatherWidgetResponseDto> GetWeatherWidgets()
+        {
+            return _widgetsRepository.GetAll()
+                .OrderByDescending(x => x.CreatedAt)
+                .Select(x => new GetWeatherWidgetResponseDto()
+                {
+                    WidgetId = x.Id,
+                    WidgetName = x.Name,
+
+                    LocalTime = DateTime.UtcNow.AddMinutes(x.UtcOffset).ToString("HH:mm"),
+                    FullLocation = x.FullLocation,
+                });
 
         }
 
-        private string GetFullLocation(Widget widget)
+        public bool UpdateWeatherWidget(int widgetId, string newName)
         {
-            if(widget.Region != null)
-            {
-                return widget.City + ", " + widget.Region + ", " + widget.Country;
-            }
+            var entity = _widgetsRepository.Get(w => w.Id == widgetId).FirstOrDefault();
 
-            return widget.City + ", " + widget.Country;
+            if (entity == null) return false;
+
+            entity.Name = newName;
+
+            _widgetsRepository.Update(entity);
+            var count = _widgetsRepository.SaveChanges();
+
+            return count > 0;
         }
     }
 }

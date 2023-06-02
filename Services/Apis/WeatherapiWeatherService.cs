@@ -4,6 +4,7 @@ using WeatherCenter.Dto.Autocomplete;
 using WeatherCenter.Dto.Weather;
 using WeatherCenter.Dto.Weather.Weatherapi;
 using WeatherCenter.Interfaces;
+using WeatherCenter.Models.Entities;
 
 namespace WeatherCenter.Services.Apis
 {
@@ -21,6 +22,7 @@ namespace WeatherCenter.Services.Apis
 
         public async Task<WeatherInfoDto> GetCurrentWeather(double latitude, double longitude)
         {
+
             var parameters = new Dictionary<string, string?>()
             {
                 {"key", _apiKey},
@@ -54,13 +56,8 @@ namespace WeatherCenter.Services.Apis
                 IsSuccess = true,
 
                 Temperature = deserializedResult.current.temp_c,
-                FeelsLikeTemperature = deserializedResult.current.feelslike_c,
-
                 WindSpeed = deserializedResult.current.wind_kph,
-                Humidity = deserializedResult.current.humidity,
                 CloudPercentage = deserializedResult.current.cloud,
-
-                LocalTime = deserializedResult.location.localtime,
 
                 SummaryIconUrl = deserializedResult.current.condition.icon
             };

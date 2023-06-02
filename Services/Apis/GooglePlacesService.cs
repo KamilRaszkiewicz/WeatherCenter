@@ -5,12 +5,12 @@ using WeatherCenter.Interfaces;
 
 namespace WeatherCenter.Services.Apis
 {
-    public class GooglePlacesAutocompleteService : IAutocompleteService
+    public class GooglePlacesService : ILocationsService
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
 
-        public GooglePlacesAutocompleteService(IHttpClientFactory clientFactory, IConfiguration configuration)
+        public GooglePlacesService(IHttpClientFactory clientFactory, IConfiguration configuration)
         {
             _httpClient = clientFactory.CreateClient("maps.googleapis.com");
             _apiKey = configuration["ApiKeys:googlePlaces"];
@@ -51,13 +51,13 @@ namespace WeatherCenter.Services.Apis
             });
         }
 
-        public async Task<Location> GetCoordinates(string placeId)
+        public async Task<LocationInfo> GetCoordinates(string placeId)
         {
             var parameters = new Dictionary<string, string>()
             {
                 {"key", _apiKey},
                 {"place_id", placeId },
-                {"fields", "geometry/location" }
+                {"fields", "utc_offset,geometry/location" }
             };
 
             var query = QueryHelpers.AddQueryString("maps/api/place/details/json", parameters);
@@ -66,10 +66,11 @@ namespace WeatherCenter.Services.Apis
 
             if (!result.IsSuccessStatusCode)
             {
-                return new Location()
+                return new LocationInfo()
                 {
-                    lat = 0,
-                    lng = 0
+                    Latitude = 0,
+                    Longtitude = 0,
+                    UtcOffset = 0
                 };
             }
 
@@ -77,14 +78,20 @@ namespace WeatherCenter.Services.Apis
 
             if (deserializedResult == null || deserializedResult.status != "OK")
             {
-                return new Location()
+                return new LocationInfo()
                 {
-                    lat = 0,
-                    lng = 0
+                    Latitude = 0,
+                    Longtitude = 0,
+                    UtcOffset = 0
                 };
             }
 
-            return deserializedResult.result.geometry.location;
+            return new LocationInfo()
+            {
+                Latitude = deserializedResult.result.geometry.location.lat,
+                Longtitude = deserializedResult.result.geometry.location.lng,
+                UtcOffset = deserializedResult.result.utc_offset
+            };
         }
     }
 }
